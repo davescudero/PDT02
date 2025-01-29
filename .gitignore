@@ -175,3 +175,6 @@ cython_debug/
 
 # Ignorar archivos específicos del sistema operativo
 .DS_Store
+
+# Ignorar archivos específicos de Windows
+.vscode
