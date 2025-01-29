@@ -1,0 +1,24 @@
+name: salespred
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11.7
+  - black
+  - pylint
+  - pandas
+  - polars
+  - numpy
+  - matplotlib
+  - plotnine
+  - scikit-learn
+  - mypy
+  - jupyterlab
+  - pyarrow
+  - fastparquet
+  - crashtest
+  - ipykernel
+  - statsforecast
+  - mlforecast
+  - neuralforecast
+  - utilsforecast
