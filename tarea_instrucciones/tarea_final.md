@@ -37,7 +37,3 @@ Puntos que deberás cubrir:
   - Aplica el pylint a tu script y trata de obetener una calificación de 10/10.
   - Aplica `black` o `flake8` a tu script y busca no tener ningún error.
   - Hay que estirarse para llegar a la meta =).
-
-## Deadline
-
-- Miércoles 19 de febrero via Canvas, colocas la URL de tu repo.
