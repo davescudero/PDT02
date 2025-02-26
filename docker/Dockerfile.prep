@@ -1,0 +1,28 @@
+# Usar una imagen base de Python
+FROM python:3.9-slim
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar los archivos de requisitos
+COPY requirements.txt .
+COPY environment.yml .
+
+# Instalar dependencias
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código fuente
+COPY prep.py .
+COPY src/ ./src/
+
+# Crear directorios necesarios
+RUN mkdir -p data/raw data/prep
+
+# Establecer variables de entorno
+ENV PYTHONPATH=/app
+
+# Comando por defecto
+ENTRYPOINT ["python", "prep.py"] 

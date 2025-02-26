@@ -10,6 +10,7 @@ import lightgbm as lgb
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_squared_error
 import numpy as np
+import argparse
 from typing import Tuple, Optional
 
 import pandas as pd
@@ -28,6 +29,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Train sales prediction model')
+    parser.add_argument('--data-dir', type=str, default='data',
+                      help='Directory containing input data')
+    parser.add_argument('--model-dir', type=str, default='models',
+                      help='Directory to save trained model')
+    parser.add_argument('--model-name', type=str, default='model.joblib',
+                      help='Name of the model file')
+    return parser.parse_args()
 
 def train_model(
     X: pd.DataFrame,
@@ -47,13 +58,15 @@ def train_model(
         logger.error(f"Error en entrenamiento: {str(e)}")
         raise
 
-
 def main():
     """Función principal para ejecutar el entrenamiento"""
     try:
+        # Parsear argumentos
+        args = parse_args()
+        
         # 1. Configurar rutas
-        data_path = PROJECT_ROOT / "data"
-        models_path = PROJECT_ROOT / "models"
+        data_path = Path(args.data_dir)
+        models_path = Path(args.model_dir)
         models_path.mkdir(exist_ok=True)
 
         # 2. Crear features
@@ -73,16 +86,16 @@ def main():
         })
 
         # 4. Guardar modelo
-        model_path = models_path / "model.joblib"
+        model_path = models_path / args.model_name
         joblib.dump(model, model_path)
         logger.info(f"Modelo guardado en: {model_path}")
+        logger.info(f"Score del modelo: {score:.4f}")
 
         logger.info("✅ Entrenamiento completado exitosamente!")
 
     except Exception as e:
         logger.error(f"❌ Error en entrenamiento: {str(e)}")
         raise
-
 
 if __name__ == "__main__":
     main()

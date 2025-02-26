@@ -8,6 +8,7 @@ import logging
 import joblib
 import pandas as pd
 import numpy as np
+import argparse
 from datetime import datetime
 from typing import Optional
 
@@ -24,15 +25,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Generate predictions using trained model')
+    parser.add_argument('--data-dir', type=str, default='data',
+                      help='Directory containing input data')
+    parser.add_argument('--model-dir', type=str, default='models',
+                      help='Directory containing trained model')
+    parser.add_argument('--model-name', type=str, default='model.joblib',
+                      help='Name of the model file')
+    parser.add_argument('--output-dir', type=str, default='data/predictions',
+                      help='Directory to save predictions')
+    return parser.parse_args()
 
 def load_model(model_path: Path) -> Optional[object]:
     """Carga el modelo entrenado."""
     try:
-        return joblib.load(model_path / "model.joblib")
+        return joblib.load(model_path)
     except Exception as e:
         logger.error(f"Error cargando modelo: {str(e)}")
         return None
-
 
 def load_model_and_scaler():
     """
@@ -49,19 +61,22 @@ def load_model_and_scaler():
         logger.error(f"Error cargando modelo o scaler: {str(e)}")
         raise
 
-
-def generate_predictions():
+def generate_predictions(args):
     """
     Genera predicciones usando el modelo entrenado.
     """
     try:
-        # 1. Cargar modelo y scaler
-        logger.info("Cargando modelo y scaler...")
-        model, scaler = load_model_and_scaler()
+        # 1. Cargar modelo
+        logger.info("Cargando modelo...")
+        model_path = Path(args.model_dir) / args.model_name
+        model = load_model(model_path)
+        if model is None:
+            raise ValueError("No se pudo cargar el modelo")
 
         # 2. Preparar features para test
         logger.info("Preparando features de test...")
-        engineer = FeatureEngineer(PROJECT_ROOT / "data")
+        data_path = Path(args.data_dir)
+        engineer = FeatureEngineer(data_path)
         sales_df, items_df, test_df = engineer.load_processed_data()
 
         # 3. Crear features de test
@@ -69,25 +84,19 @@ def generate_predictions():
             test_df, sales_df, items_df
         )
 
-        # 4. Escalar features
-        X_test_scaled = scaler.transform(test_features)
-
-        # 5. Realizar predicciones
+        # 4. Realizar predicciones
         logger.info("Generando predicciones...")
-        predictions = model.predict(X_test_scaled)
+        predictions = model.predict(test_features)
         predictions = np.expm1(predictions).clip(0, 20)
 
-        # 6. Crear DataFrame de predicciones
+        # 5. Crear DataFrame de predicciones
         submission = pd.DataFrame({"ID": test_df.index, "item_cnt_month": predictions})
 
-        # 7. Guardar predicciones
-        predictions_path = PROJECT_ROOT / "data" / "predictions"
-        predictions_path.mkdir(exist_ok=True)
+        # 6. Guardar predicciones
+        output_path = Path(args.output_dir)
+        output_path.mkdir(exist_ok=True, parents=True)
 
-        output_file = (
-            predictions_path
-            / f"predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
-        )
+        output_file = output_path / f"predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
         submission.to_csv(output_file, index=False)
 
         logger.info(f"✅ Predicciones guardadas en: {output_file}")
@@ -101,15 +110,14 @@ def generate_predictions():
         logger.error(f"❌ Error en predicciones: {str(e)}")
         raise
 
-
 def main():
     """Función principal para ejecutar las predicciones"""
     try:
-        generate_predictions()
+        args = parse_args()
+        generate_predictions(args)
     except Exception as e:
         logger.error(f"Error en main: {str(e)}")
         raise
-
 
 if __name__ == "__main__":
     main()

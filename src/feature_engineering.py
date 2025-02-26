@@ -31,7 +31,7 @@ class FeatureEngineer:
             data_path (Path): Ruta base donde se encuentran los datos
         """
         self.data_path = data_path
-        self.prep_path = data_path / "prep"
+        self.prep_path = data_path / "processed"
         self.scaler = StandardScaler()
 
     def _get_feature_columns(self) -> list:

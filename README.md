@@ -44,13 +44,13 @@ python prep.py
 ### Entrenamiento
 
 ```bash
-python train.py
+./docker/run.sh train
 ```
 
 ### Inferencia
 
 ```bash
-python inference.py
+./docker/run.sh inference
 ```
 
 ## Estructura de Datos
